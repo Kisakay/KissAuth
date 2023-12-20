@@ -9,60 +9,101 @@ ipv4
  / ____/  __/ /_/ / /__/  __/ ___ / /_/ / /_/ / / /  __/ / / / /_/ / __/ / /__/ /_/ / /_/ /_/ / /        
 /_/    \___/\__,_/\___/\___/_/  |_\__,_/\__/_/ /_/\___/_/ /_/\__/_/_/ /_/\___/\__,_/\__/\____/_/                                                    
 ---------------------------------------------------------*/
-const db = require('quick.db')
-// const Discord = require('discord.js')
-// const client = new Discord.Client()
-const config = require("../config.js")
+import { Base, BaseGuild, BaseGuildTextChannel, Client, EmbedBuilder } from "discord.js";
+import { Request, Response } from "express";
 
-const data = {
-    "good": require('./good.json'),
-    "good2": require('./good2.json'),
-    "bad": require('./bad.json'),
-    "bad2": require('./bad2.json')
+import { QuickDB } from 'quick.db';
+import { config } from '../config';
+
+const db = new QuickDB();
+interface Code {
+    good: {
+        title: string
+        descriptions: string
+    },
+    good2: {
+        title: string
+        descriptions: string,
+        main?: {
+            ip: any,
+            key: any
+        }
+    },
+    bad: {
+        title: string
+        descriptions: string
+    },
+    bad2: {
+        title: string
+        descriptions: string
+    },
+};
+
+const data: Code = {
+    "good": {
+        "title": "Succeful",
+        "descriptions": "yes you dit it !"
+    },
+    "good2": {
+        "title": "Available",
+        "descriptions": "the key is successful available"
+    },
+    "bad": {
+        "title": "Bad ip with your key !",
+        "descriptions": "Sorry but the ipv4 in our database is not the same as you :/"
+    },
+    "bad2": {
+        "title": "Your key is not unvailable !",
+        "descriptions": "Sorry but the key is not in our database !"
+    }
 }
 //---------------------------------------------------------
 
-export = (req: { body: { ip: any; key: any; tor: any; adminKey: any } }, res: { send: (arg0: string) => void; json: (arg0: any) => void }) => {
-
+export = async (req: Request, res: Response, client: Client) => {
     const { ip, key, tor, adminKey } = req.body;
 
     if (!ip || !key) return console.log("-> Bad json request without ip/key");
 
-    if (tor !== 'CREATE_KEY' || tor !== 'DELETE_KEY' || tor !== 'CHECK_KEY' || tor !== 'LOGIN_KEY') {
-        console.log('-> Bad json requests without options')
-        return res.send('-> Bad json requests without options')
+    console.log(tor)
+    if (tor !== 'CREATE_KEY' && tor !== 'DELETE_KEY' && tor !== 'CHECK_KEY' && tor !== 'LOGIN_KEY') {
+        console.log('-> Bad json requests without options');
+        return res.send('-> Bad json requests without options');
     }
+
     console.log(`--------------------------------------------------------------------------------------------------------------------\nIP: ${ip}\nREQUEST TYPE: ${tor}\nADMINKEY: ${adminKey}\nKEY: ${key}\n--------------------------------------------------------------------------------------------------------------------`)
 
     if (tor == "CREATE_KEY") {
+        console.log(adminKey, config.adminKey)
         if (adminKey != config.adminKey) return console.log("-> Bad json requests without the good admin key")
-        db.set(`key_${key}`, ip)
+        await db.set(`key_${key}`, ip);
         res.send("Succefully create a key !")
 
-        const embed = new Discord.MessageEmbed()
+        const embed = new EmbedBuilder()
             .setTitle("Server ~:")
-            .setColor("GREEN")
+            .setColor("#008000")
             .setDescription(`A key has created\`\`\`${key}\`\`\`This IPV4 is **${ip}**`)
-            .setFooter("by Kisakay")
-            .setTimestamp()
-        client.channels.cache.get(config.sendID).send(embed);
+            .setFooter({ text: "by Kisakay" })
+            .setTimestamp();
+
+        (client.channels.cache.get(config.sendID) as BaseGuildTextChannel).send({ embeds: [embed] });
         return
     }
 
     if (tor == "DELETE_KEY") {
         if (adminKey != config.adminKey) return console.log("-> Bad json requests without the good admin key")
-        let value = db.fetch(`key_${key}`, ip)
+        let value = await db.get(`key_${key}.${ip}`);
         if (!value) return;
         res.send("Succefully delete a key !")
 
-        const embed = new Discord.MessageEmbed()
+        const embed = new EmbedBuilder()
             .setTitle("Server ~:")
-            .setColor("GREEN")
+            .setColor("#008000")
             .setDescription(`A key has deleted\`\`\`${key}\`\`\`This IPV4 is **${value}**`)
-            .setFooter("by Kisakay")
-            .setTimestamp()
-        client.channels.cache.get(config.sendID).send(embed);
-        db.delete(`key_${key}`, ip)
+            .setFooter({ text: "by Kisakay" })
+            .setTimestamp();
+
+        (client.channels.cache.get(config.sendID) as BaseGuildTextChannel).send({ embeds: [embed] });
+        await db.delete(`key_${key}.${ip}`);
         return
     }
 
@@ -71,34 +112,33 @@ export = (req: { body: { ip: any; key: any; tor: any; adminKey: any } }, res: { 
         if (!ip || !key) return console.log("-> Bad json request without ip/key")
         if (tor != 'LOGIN_KEY') return
         if (adminKey != 'unknow') return
-        let value = db.fetch(`key_${key}`)
-        if (!value) { return res.json(data.bad2) }
-        if (value != ip) return res.json(data.bad)
+        let value = await db.get(`key_${key}`);
+        if (!value) { return res.json(data.bad2) };
+        if (value != ip) return res.json(data.bad);
 
-        const embed = new Discord.MessageEmbed()
+        const embed = new EmbedBuilder()
             .setTitle("Server ~:")
-            .setColor("GREEN")
+            .setColor("#008000")
             .setDescription(`A key has use for login\`\`\`${key}\`\`\`This IPV4 is **${value}**`)
-            .setFooter("by Kisakay")
-            .setTimestamp()
-        client.channels.cache.get(config.sendID).send(embed);
-        res.json(data.good)
-        return
+            .setFooter({ text: "by Kisakay" })
+            .setTimestamp();
+
+        (client.channels.cache.get(config.sendID) as BaseGuildTextChannel).send({ embeds: [embed] });
+        res.json(data.good);
+        return;
     }
 
     if (tor == "CHECK_KEY") {
         const { ip, key, tor, adminKey } = req.body
-        if (tor != 'CHECK_KEY')
-            if (!ip || !key) return console.log("-> Bad json request without ip/key")
+        if (!ip || !key) return console.log("-> Bad json request without ip/key")
         if (adminKey != config.adminKey) return
-        let value = db.fetch(`key_${key}`)
+        let value = await db.get(`key_${key}`);
         if (!value) { return res.json(data.bad2); }
         let fetchIPV4 = { ip: value, key: key }
 
 
-        data.good2["main"] = fetchIPV4;
+        data.good2.main = fetchIPV4;
         res.json(data.good2)
-
         return;
     }
 }

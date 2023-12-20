@@ -25,6 +25,7 @@
     "exclude": [
         "/.github",
         "./dist",
-        "./node_modules"
+        "./node_modules",
+        "./config.example.ts"
     ]
 }

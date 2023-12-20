@@ -1,7 +1,7 @@
 {
   "name": "kiss-authentificator-v3",
   "version": "2.0.0",
-  "description": "PeaceAuthentificator remade with post json (with key) + IP CHECKER",
+  "description": "Kiss-Authentificator remade in TypeScript",
   "main": "./dist/index.js",
   "scripts": {
     "test": "npx tsc && node ./dist/index.js",
@@ -20,7 +20,8 @@
   "homepage": "https://github.com/Kisakay/Kiss-Authentificator-V3#readme",
   "dependencies": {
     "axios": "^1.5.1",
-    "discord.js": "^14.13.0",
+    "better-sqlite3": "^9.2.2",
+    "discord.js": "^14.14.1",
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.1",
     "generate-key": "^0.0.6",
