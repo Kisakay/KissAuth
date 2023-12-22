@@ -5,7 +5,6 @@ const serviceConfig = {
 };
 
 //---------------------------------------------------------
-import superagent from 'superagent';
 import readline from 'readline';
 import ipify from 'ipify';
 import fs from 'node:fs'
@@ -17,43 +16,52 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-import lineReader from 'line-reader';
-import detect from 'detect-file';
-
 async function licenceChecker() {
-    console.log('Checking if you are already activate the software...')
-    let myip = await ipify({ useIPv6: false })
-    var resti = detect("key.db");
-    if (!resti) {
-        return get()
-    }
-    lineReader.eachLine("key.db", function (first, last) {
-        keyindb = first
 
-        superagent
-            .post(`http://${serviceConfig.url}:${serviceConfig.port}/api/json`)
-            .send({
-                adminKey: "unknow",
-                ip: myip,
-                key: keyindb,
-                tor: 'LOGIN_KEY'
-            })
-            .end((err, response) => {
-                var statussrv = response.body.title
-                if (statussrv === 'Succeful') {
-                    console.log(`Yeah, ${serviceConfig.serviceName} is activate !`.rainbow.bold)
-                    console.log("-----> Starting The Software...".green.bold)
-                    //starting ...
-                    start()
-                } else {
-                    if (statussrv === "Bad ip with your key !") {
-                        start()
-                    } else {
-                        get()
-                    }
-                }
-            })
-    })
+    console.log('Checking if you are already activate the software...');
+
+    let myip = await ipify({ useIPv6: false });
+
+    if (!fs.existsSync("key.db")) {
+        return get()
+    } else {
+        fs.readFile('key.db', 'utf8', (err, data) => {
+            if (data) {
+                let lines = data.split("\n");
+
+                fetch(`http://${serviceConfig.url}:${serviceConfig.port}/api/json`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        adminKey: "unknow",
+                        ip: myip,
+                        key: lines[0],
+                        tor: 'LOGIN_KEY'
+                    }),
+                    headers: { 'Content-type': 'application/json; charset=UTF-8' },
+                })
+                    .then((response) => response.json())
+                    .then((json) => {
+                        var statussrv = json.title;
+
+                        if (statussrv === 'Succeful') {
+                            console.log(`Yeah, ${serviceConfig.serviceName} is activate !`.rainbow.bold)
+                            console.log("-----> Starting The Software...".green.bold)
+                            //starting ...
+                            start()
+                        } else {
+                            if (statussrv === "Bad ip with your key !") {
+                                start()
+                            } else {
+                                get()
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.log(error)
+                    })
+            };
+        });
+    }
 }
 
 licenceChecker()
@@ -62,17 +70,22 @@ async function get() {
     const myip = await ipify({ useIPv6: false });
 
     rl.question(`Hey, ${serviceConfig.serviceName} is not free ! Do you have key? If you here, i think is yes ! Type you key please :\n`.red + "key ~> ".blue, (answer) => {
-        console.log('[API]'.green + ' >> Checking if your key is available'.yellow)
-        superagent
-            .post(`http://${serviceConfig.url}:${serviceConfig.port}/api/json`)
-            .send({
+        console.log('[API]'.green + ' >> Checking if your key is available'.yellow);
+
+        fetch(`http://${serviceConfig.url}:${serviceConfig.port}/api/json`, {
+            method: 'POST',
+            body: JSON.stringify({
                 adminKey: "unknow",
                 ip: myip,
                 key: answer,
                 tor: 'LOGIN_KEY'
-            })
-            .end((err, response) => {
-                var statussrv = response.body.title
+            }),
+            headers: { 'Content-type': 'application/json; charset=UTF-8' },
+        })
+            .then((response) => response.json())
+            .then((json) => {
+                var statussrv = json.title;
+
                 if (statussrv === 'Succeful') {
                     console.log(`Yeah, you just activate ${serviceConfig.serviceName}, gg !`.rainbow.bold)
                     //writing in db
@@ -87,6 +100,9 @@ async function get() {
                 } else if (statussrv === "Bad ip with your key !") {
                     console.log("Your key is not associed to this ip ! Please disable your vpn or switch to classical connections !\nFor more informations please contact the support !\nIf you don't know, 1* Key is for 1* People !".red.bold)
                 }
+            })
+            .catch(error => {
+                console.log(error)
             })
     })
 }

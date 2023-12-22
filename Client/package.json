@@ -4,14 +4,10 @@
   "description": "Kiss Authentificator create with post json (with key) + IP CHECKER",
   "main": "index.js",
   "type": "module",
-    "dependencies": {
+  "dependencies": {
     "colors": "^1.4.0",
-    "detect-file": "^1.0.0",
     "ipify": "^5.0.0",
-    "line-reader": "^0.4.0",
-    "path": "^0.12.7",
-    "readline": "^1.3.0",
-    "superagent": "^7.1.3"
+    "readline": "^1.3.0"
   },
   "scripts": {
     "test": "node index.js"
