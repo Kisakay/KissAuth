@@ -1,9 +1,24 @@
-import { Client, EmbedBuilder, Partials, GatewayIntentBits, Message, SlashCommandBuilder, BaseApplicationCommandData, ChatInputCommandInteraction, Collection, Events, REST, Routes, ApplicationCommandType, ApplicationCommand, Interaction, CacheType, BaseGuildTextChannel, BaseGuild } from "discord.js";
-import { config } from './config';
-import superagent, { Response } from 'superagent';
-import express from 'express';
-import rateLimit from "express-rate-limit";
+import {
+    Client,
+    EmbedBuilder,
+    Partials,
+    GatewayIntentBits,
+    SlashCommandBuilder,
+    ChatInputCommandInteraction,
+    Collection,
+    Events,
+    REST,
+    Routes,
+    ApplicationCommandType,
+    ApplicationCommand,
+    BaseGuildTextChannel
+} from "discord.js";
 
+import superagent, { Response } from 'superagent';
+import rateLimit from "express-rate-limit";
+import express from 'express';
+
+import { config } from './config';
 import code from './Routes/code';
 
 let client = new Client({
@@ -26,7 +41,6 @@ let client = new Client({
     ]
 });
 
-//---------------------------------------------------------
 var app = express();
 var rand = require("generate-key");
 
@@ -250,9 +264,7 @@ const commands = [
 for (const cmd of commands) {
     if ('data' in cmd && 'run' in cmd) {
         client.commands.set(cmd.data.name, cmd);
-    } else {
-        console.log(`[WARNING] The ${cmd}'s commands is missing a required "data" or "execute" property.`);
-    }
+    } else { console.log(`[WARNING] The ${cmd}'s commands is missing a required "data" or "execute" property.`) }
 }
 
 const rest = new REST().setToken(config.token);
@@ -294,5 +306,3 @@ client.on(Events.InteractionCreate, interaction => {
 
 client.login(config.token);
 //made by Kisakay
-//inspirate is not skid
-//anti-skid

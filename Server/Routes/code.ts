@@ -61,19 +61,19 @@ export = async (req: Request, res: Response, client: Client) => {
     const { ip, key, tor, adminKey } = req.body;
 
     if (!ip || !key) {
-        console.log("-> Bad json request without ip/key");
+        console.log("(1) -> Bad json request without ip/key");
         return;
     };
 
     if (tor !== 'CREATE_KEY' && tor !== 'DELETE_KEY' && tor !== 'CHECK_KEY' && tor !== 'LOGIN_KEY') {
-        console.log('-> Bad json requests without options');
+        console.log('(2) -> Bad json requests without options');
         res.send('-> Bad json requests without options');
         return;
     }
 
     console.log(`--------------------------------------------------------------------------------------------------------------------\nIP: ${ip}\nREQUEST TYPE: ${tor}\nADMINKEY: ${adminKey}\nKEY: ${key}\n--------------------------------------------------------------------------------------------------------------------`)
 
-    if (tor == "CREATE_KEY" && adminKey != config.adminKey) {
+    if (tor == "CREATE_KEY" && adminKey == config.adminKey) {
         await db.set(`key_${key}`, ip);
         res.send("Succefully create a key !");
 
@@ -86,12 +86,9 @@ export = async (req: Request, res: Response, client: Client) => {
 
         (client.channels.cache.get(config.sendID) as BaseGuildTextChannel).send({ embeds: [embed] });
         return;
-    } else {
-        console.log("-> Bad json requests without the good admin key");
-        res.send(500);
     };
 
-    if (tor == "DELETE_KEY" && adminKey != config.adminKey) {
+    if (tor == "DELETE_KEY" && adminKey == config.adminKey) {
 
         let value = await db.get(`key_${key}.${ip}`);
         if (!value) return;
@@ -107,8 +104,6 @@ export = async (req: Request, res: Response, client: Client) => {
         (client.channels.cache.get(config.sendID) as BaseGuildTextChannel).send({ embeds: [embed] });
         await db.delete(`key_${key}.${ip}`);
         return;
-    } else {
-        console.log("-> Bad json requests without the good admin key")
     };
 
     if (tor == "LOGIN_KEY" && adminKey == 'unknow') {
@@ -131,12 +126,11 @@ export = async (req: Request, res: Response, client: Client) => {
             .setTimestamp();
 
         (client.channels.cache.get(config.sendID) as BaseGuildTextChannel).send({ embeds: [embed] });
-        res.json(data.good);
+        res.send(data.good);
         return;
     };
 
     if (tor == "CHECK_KEY" && adminKey != config.adminKey) {
-
         let value = await db.get(`key_${key}`);
         let fetchIPV4 = { ip: value, key: key }
 

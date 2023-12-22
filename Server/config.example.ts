@@ -8,5 +8,6 @@ export default {
     url: "",
     port: 3030,
     adminKey: "",
-    key4bot: ""
+    key4bot: "",
+    botId: "1159464196958855199"
 }
