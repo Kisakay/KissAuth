@@ -58,7 +58,12 @@ const data: Code = {
 //---------------------------------------------------------
 
 export = async (req: Request, res: Response, client: Client) => {
-    const { ip, key, tor, adminKey } = req.body;
+    var key: string = req.body.key;
+    key = key.split(' ')[0].split('\n')[0]
+
+    let adminKey: string = req.body.adminKey;
+    let tor: string = req.body.tor;
+    let ip: string = req.body.ip;
 
     if (!ip || !key) {
         console.log("(1) -> Bad json request without ip/key");
