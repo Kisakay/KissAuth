@@ -73,7 +73,7 @@ export = async (req: Request, res: Response, client: Client) => {
 
     console.log(`--------------------------------------------------------------------------------------------------------------------\nIP: ${ip}\nREQUEST TYPE: ${tor}\nADMINKEY: ${adminKey}\nKEY: ${key}\n--------------------------------------------------------------------------------------------------------------------`)
 
-    if (tor == "CREATE_KEY" && adminKey == config.adminKey) {
+    if (tor == "CREATE_KEY" && adminKey == config.bot.bot_password) {
         await db.set(`key_${key}`, ip);
         res.send("Succefully create a key !");
 
@@ -84,11 +84,11 @@ export = async (req: Request, res: Response, client: Client) => {
             .setFooter({ text: "by Kisakay" })
             .setTimestamp();
 
-        (client.channels.cache.get(config.sendID) as BaseGuildTextChannel).send({ embeds: [embed] });
+        (client.channels.cache.get(config.channel_log_id) as BaseGuildTextChannel).send({ embeds: [embed] });
         return;
     };
 
-    if (tor == "DELETE_KEY" && adminKey == config.adminKey) {
+    if (tor == "DELETE_KEY" && adminKey == config.bot.bot_password) {
 
         let value = await db.get(`key_${key}.${ip}`);
         if (!value) return;
@@ -101,7 +101,7 @@ export = async (req: Request, res: Response, client: Client) => {
             .setFooter({ text: "by Kisakay" })
             .setTimestamp();
 
-        (client.channels.cache.get(config.sendID) as BaseGuildTextChannel).send({ embeds: [embed] });
+        (client.channels.cache.get(config.channel_log_id) as BaseGuildTextChannel).send({ embeds: [embed] });
         await db.delete(`key_${key}.${ip}`);
         return;
     };
@@ -125,12 +125,12 @@ export = async (req: Request, res: Response, client: Client) => {
             .setFooter({ text: "by Kisakay" })
             .setTimestamp();
 
-        (client.channels.cache.get(config.sendID) as BaseGuildTextChannel).send({ embeds: [embed] });
+        (client.channels.cache.get(config.channel_log_id) as BaseGuildTextChannel).send({ embeds: [embed] });
         res.send(data.good);
         return;
     };
 
-    if (tor == "CHECK_KEY" && adminKey != config.adminKey) {
+    if (tor == "CHECK_KEY" && adminKey != config.bot.bot_password) {
         let value = await db.get(`key_${key}`);
         let fetchIPV4 = { ip: value, key: key }
 

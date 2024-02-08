@@ -14,7 +14,6 @@ import {
     BaseGuildTextChannel
 } from "discord.js";
 
-import superagent, { Response } from 'superagent';
 import rateLimit from "express-rate-limit";
 import express from 'express';
 
@@ -42,7 +41,6 @@ let client = new Client({
 });
 
 var app = express();
-var rand = require("generate-key");
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -57,8 +55,8 @@ app.post('/api/json', (req, res) => {
     code(req, res, client);
 });
 
-app.listen(config['port'], () => {
-    console.log(`Listening on port ${config['port']}`);
+app.listen(config.server.server_port, () => {
+    console.log(`Listening on port ${config.server.server_port}`);
 });
 
 client.commands = new Collection();
@@ -66,6 +64,8 @@ client.commands = new Collection();
 client.on('ready', () => {
     console.log(`Logged as ${client.user?.tag}`)
 });
+
+export const generateKey = (length: number) => [...Array(length)].map(() => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".charAt(Math.floor(Math.random() * 62))).join('');
 
 const commands = [
     {
@@ -88,12 +88,12 @@ const commands = [
             var ip = interaction.options.getString("ip")
             var adminKey = interaction.options.getString("admin_key")
 
-            if (adminKey != config.key4bot) {
+            if (adminKey != config.bot.bot_password) {
                 interaction.reply("the admin token is not good :c");
                 return;
             };
 
-            var keyy = rand.generateKey(400);
+            var keyy = generateKey(400);
 
             let sltcv = new EmbedBuilder()
                 .setTitle("Key in creation")
@@ -102,7 +102,7 @@ const commands = [
                 .setFooter({ text: 'by Kisakay' });
 
             interaction.reply({ embeds: [sltcv] });
-            interaction.channel?.send(`**->** <#${config.sendID}>`);
+            interaction.channel?.send(`**->** <#${config.channel_log_id}>`);
 
             let embed = new EmbedBuilder()
                 .setTitle("Request to server...")
@@ -111,20 +111,21 @@ const commands = [
                 .setFooter({ text: "by Kisakay" })
                 .setTimestamp();
 
-            let channel = interaction.guild?.channels.cache.get(config.sendID);
+            let channel = interaction.guild?.channels.cache.get(config.channel_log_id);
 
             (channel as BaseGuildTextChannel).send({ embeds: [embed] });
 
-            superagent
-                .post(`http://${config.url}:${config['port']}/api/json`)
-                .send({
-                    adminKey: config.adminKey,
+            fetch(`http://${config.server.server_url}:${config.server.server_port}/api/json`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    adminKey: config.server.server_authorizations,
                     ip: ip,
                     key: keyy,
                     tor: 'CREATE_KEY'
-                })
-                .set('accept', 'json')
-                .end(() => { });
+                }),
+                headers: { 'Content-type': 'application/json; charset=UTF-8' },
+            });
+
             return;
         },
     },
@@ -148,7 +149,7 @@ const commands = [
             var key = interaction.options.getString("key");
             var adminKey = interaction.options.getString("admin_key");
 
-            if (adminKey != config.key4bot) {
+            if (adminKey != config.bot.bot_password) {
                 interaction.channel?.send("the admin token is not good :c");
                 return;
             };
@@ -160,7 +161,7 @@ const commands = [
                 .setFooter({ text: 'by Kisakay' });
 
             interaction.reply({ embeds: [sltcv] });
-            interaction.channel?.send(`**->** <#${config.sendID}>`);
+            interaction.channel?.send(`**->** <#${config.channel_log_id}>`);
 
             const embed = new EmbedBuilder()
                 .setTitle("Request to server...")
@@ -169,19 +170,19 @@ const commands = [
                 .setFooter({ text: "by Kisakay" })
                 .setTimestamp();
 
-            let channel = interaction.guild?.channels.cache.get(config.sendID);
+            let channel = interaction.guild?.channels.cache.get(config.channel_log_id);
             (channel as BaseGuildTextChannel).send({ embeds: [embed] });
 
-            superagent
-                .post(`http://${config.url}:${config['port']}/api/json`)
-                .send({
-                    adminKey: config.adminKey,
+            fetch(`http://${config.server.server_url}:${config.server.server_port}/api/json`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    adminKey: config.bot.bot_password,
                     ip: "x",
                     key: key,
                     tor: 'DELETE_KEY'
-                })
-                .set('accept', 'json')
-                .end(() => { })
+                }),
+                headers: { 'Content-type': 'application/json; charset=UTF-8' },
+            });
         }
     },
     {
@@ -204,7 +205,7 @@ const commands = [
             var key = interaction.options.getString('key');
             var adminKey = interaction.options.getString('admin_key');
 
-            if (adminKey != config.key4bot) {
+            if (adminKey != config.bot.bot_password) {
                 interaction.reply("the admin token is not good :c");
                 return;
             };
@@ -216,7 +217,7 @@ const commands = [
                 .setFooter({ text: 'by Kisakay' });
 
             interaction.channel?.send({ embeds: [sltcv] });
-            interaction.channel?.send(`**->**See Logs Here <#${config.sendID}>`)
+            interaction.channel?.send(`**->**See Logs Here <#${config.channel_log_id}>`)
 
             let embed = new EmbedBuilder()
                 .setTitle("Request to server...")
@@ -225,38 +226,38 @@ const commands = [
                 .setFooter({ text: 'by Kisakay' })
                 .setTimestamp();
 
-            let channel = interaction.guild?.channels.cache.get(config.sendID);
+            let channel = interaction.guild?.channels.cache.get(config.channel_log_id);
             (channel as BaseGuildTextChannel).send({ embeds: [embed] });
 
-            superagent
-                .post(`http://${config.url}:${config['port']}/api/json`)
-                .send({
-                    adminKey: config.adminKey,
+            fetch(`http://${config.server.server_url}:${config.server.server_port}/api/json`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    adminKey: config.bot.bot_password,
                     ip: "unknow",
                     key: key,
                     tor: 'CHECK_KEY'
-                })
-                .set('accept', 'json')
-                .end((error: string, res: Response) => {
-                    console.log(error)
-                    if (res.body.descriptions == "Sorry but the key is not in our database !") {
-                        interaction.reply(':x: **The key is not in the database !**');
-                        return;
-                    };
+                }),
+                headers: { 'Content-type': 'application/json; charset=UTF-8' },
+            }).then((json: any) => {
 
-                    var ip = res.body.ip;
-                    var key = res.body.key;
-
-                    let embed = new EmbedBuilder()
-                        .setTitle("Finnish!")
-                        .setColor("#3b722e")
-                        .setDescription(`A key is check by: <@${interaction.user.id}>\n\`\`\`${key}\`\`\`This IPV4 is **${ip}**`)
-                        .setFooter({ text: "by Kisakay" })
-                        .setTimestamp();
-
-                    interaction.reply({ embeds: [embed] });
+                if (json.descriptions == "Sorry but the key is not in our database !") {
+                    interaction.reply(':x: **The key is not in the database !**');
                     return;
-                });
+                };
+
+                var ip = json.ip;
+                var key = json.key;
+
+                let embed = new EmbedBuilder()
+                    .setTitle("Finnish!")
+                    .setColor("#3b722e")
+                    .setDescription(`A key is check by: <@${interaction.user.id}>\n\`\`\`${key}\`\`\`This IPV4 is **${ip}**`)
+                    .setFooter({ text: "by Kisakay" })
+                    .setTimestamp();
+
+                interaction.reply({ embeds: [embed] });
+                return;
+            });
         }
     },
 ];
@@ -267,14 +268,14 @@ for (const cmd of commands) {
     } else { console.log(`[WARNING] The ${cmd}'s commands is missing a required "data" or "execute" property.`) }
 }
 
-const rest = new REST().setToken(config.token);
-
 (async () => {
+    const rest = new REST().setToken(config.bot.bot_token);
+
     try {
         console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
         const data = await rest.put(
-            Routes.applicationCommands(config.botId),
+            Routes.applicationCommands(config.bot.bot_id),
             {
                 body: client.commands?.map((command) => ({
                     name: command.data.name,
@@ -294,9 +295,11 @@ const rest = new REST().setToken(config.token);
 client.on(Events.InteractionCreate, interaction => {
     if (!interaction.isChatInputCommand()) return;
 
-    if (interaction.user.id !== config.author1
-        || interaction.guild?.id !== config.guildID
-        || interaction.channelId !== config.channelID) {
+    if (!config.permission.authorized.includes(interaction.user.id)
+        || interaction.guild?.id !== config.guild_id
+        || interaction.channelId !== config.channel_id) {
+
+        interaction.reply({ content: `:x:` })
         return;
     }
 
@@ -304,5 +307,5 @@ client.on(Events.InteractionCreate, interaction => {
     cmd.run(client, interaction)
 });
 
-client.login(config.token);
+client.login(config.bot.bot_token);
 //made by Kisakay

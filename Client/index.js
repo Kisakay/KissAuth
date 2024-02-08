@@ -39,7 +39,6 @@ async function licenceChecker() {
                     }),
                     headers: { 'Content-type': 'application/json; charset=UTF-8' },
                 })
-                    .then((response) => response.json())
                     .then((json) => {
                         var statussrv = json.title;
 
