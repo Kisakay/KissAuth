@@ -1,2 +1,6 @@
 package-lock.json
 bun.lockdb
+yarn.lock
+package-lock.json
+node_modules
+config.ts
