@@ -127,3 +127,4 @@ dist
 .pnp.*
 Server/config.ts
 *.lockb
+Client/JavaScript/key.db

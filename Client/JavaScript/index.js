@@ -6,7 +6,6 @@ const serviceConfig = {
 
 //---------------------------------------------------------
 import readline from 'readline';
-import ipify from 'ipify';
 import fs from 'node:fs'
 
 import 'colors';
@@ -15,6 +14,25 @@ const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
+
+async function ipify({ useIPv6 = true, endpoint } = {}) {
+    const IPIFY_ENDPOINT_IPV4 = 'https://api.ipify.org';
+    const IPIFY_ENDPOINT_IPV6 = 'https://api6.ipify.org';
+
+    if (endpoint === undefined) {
+        endpoint = useIPv6 ? IPIFY_ENDPOINT_IPV6 : IPIFY_ENDPOINT_IPV4;
+    }
+
+    try {
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return await response.text();
+    } catch (error) {
+        throw new Error(`Failed to fetch IP address: ${error.message}`);
+    }
+};
 
 async function licenceChecker() {
 
