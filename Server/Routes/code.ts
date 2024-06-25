@@ -79,7 +79,7 @@ export = async (req: Request, res: Response, client: Client) => {
 
     logger.legacy(`--------------------------------------------------------------------------------------------------------------------\nIP: ${ip}\nREQUEST TYPE: ${tor}\nADMINKEY: ${adminKey}\nKEY: ${key}\n--------------------------------------------------------------------------------------------------------------------`)
 
-    if (tor == "CREATE_KEY" && adminKey == config.bot.bot_password) {
+    if (tor == "CREATE_KEY" && adminKey === config.server.server_authorizations) {
         await db.set(`key_${key}`, ip);
         res.send("Succefully create a key !");
 
@@ -94,7 +94,7 @@ export = async (req: Request, res: Response, client: Client) => {
         return;
     };
 
-    if (tor == "DELETE_KEY" && adminKey == config.bot.bot_password) {
+    if (tor == "DELETE_KEY" && adminKey === config.server.server_authorizations) {
 
         let value = await db.get(`key_${key}.${ip}`);
         if (!value) return;
@@ -112,7 +112,7 @@ export = async (req: Request, res: Response, client: Client) => {
         return;
     };
 
-    if (tor == "LOGIN_KEY" && adminKey == 'unknow') {
+    if (tor == "LOGIN_KEY" && adminKey === 'unknow') {
 
         let value = await db.get(`key_${key}`);
 
