@@ -6,13 +6,13 @@
  * /_/    \___/\__,_/\___/\___/_/  |_\__,_/\__/_/ /_/\___/_/ /_/\__/_/_/ /_/\___/\__,_/\__/\____/_/                                                    
 */
 
-import { BaseGuildTextChannel, Client, EmbedBuilder } from "discord.js";
+import { BaseGuildTextChannel, Client, EmbedBuilder } from "pwss";
 import { Request, Response } from "express";
 
-import { QuickDB } from 'quick.db';
+import { JSONDriver, QuickDB } from 'quick.db';
 import { config } from '../config';
 
-const db = new QuickDB();
+const db = new QuickDB({ driver: new JSONDriver() });
 
 interface Code {
     good: {

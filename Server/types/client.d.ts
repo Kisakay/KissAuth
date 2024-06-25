@@ -1,6 +1,6 @@
-import { Collection } from "discord.js";
+import { Collection } from "pwss";
 
-declare module 'discord.js' {
+declare module 'pwss' {
     export interface Client {
         commands: Collection<string, any>,
     }

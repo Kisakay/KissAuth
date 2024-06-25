@@ -12,7 +12,7 @@ import {
     ApplicationCommandType,
     ApplicationCommand,
     BaseGuildTextChannel
-} from "discord.js";
+} from "pwss";
 
 import rateLimit from "express-rate-limit";
 import express from 'express';

@@ -129,3 +129,4 @@ Server/config.ts
 *.lockb
 Client/JavaScript/key.db
 Client/Rust/key.db
+bun.lockb
