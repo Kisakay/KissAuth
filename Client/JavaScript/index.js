@@ -5,9 +5,10 @@ const serviceConfig = {
 };
 
 //---------------------------------------------------------
-import readline from 'readline';
-import fs from 'node:fs'
-import 'colors';
+const readline = require('readline');
+const process = require('process');
+const fs = require('node:fs');
+require('colors');
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -112,9 +113,11 @@ async function get() {
                     });
                 }
                 if (statussrv === "Your key is not unvailable !") {
-                    console.log("No, this key is not correct ! Please contact support, if you don't have key !".red.bold)
+                    console.log("No, this key is not correct ! Please contact support, if you don't have key !".red.bold);
+                    process.exit(1);
                 } else if (statussrv === "Bad ip with your key !") {
                     console.log("Your key is not associed to this ip ! Please disable your vpn or switch to classical connections !\nFor more informations please contact the support !\nIf you don't know, 1* Key is for 1* People !".red.bold)
+                    process.exit(1);
                 }
             })
             .catch(error => {
