@@ -85,13 +85,20 @@ const commands = [
                     .setRequired(true)
             ),
         async run(client: Client, interaction: ChatInputCommandInteraction) {
-            var ip = interaction.options.getString("ip")
-            var adminKey = interaction.options.getString("admin_key")
+            var ip = interaction.options.getString("ip") as string;
+            var adminKey = interaction.options.getString("admin_key") as string;
+
+            let ipv4_regex = /(?:(?:25[0-5]|2[0-4]\d|[01]?\d?\d{1})\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d?\d{1})/g;
 
             if (adminKey != config.bot.bot_password) {
                 await interaction.reply({ content: "`[❌]` The admin token is not good :c", ephemeral: true });
                 return;
             };
+
+            if (!ipv4_regex.test(ip)) {
+                await interaction.reply({ content: "`[❌]` The IPv4 is not in good format :c", ephemeral: true });
+                return;
+            }
 
             var keyy = generatePassword({ length: 349 });
 
