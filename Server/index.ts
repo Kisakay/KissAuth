@@ -232,30 +232,29 @@ const commands = [
             fetch(`http://${config.server.server_url}:${config.server.server_port}/api/json`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    adminKey: config.bot.bot_password,
+                    adminKey: config.server.server_authorizations,
                     ip: "unknow",
                     key: key,
                     tor: 'CHECK_KEY'
                 }),
                 headers: { 'Content-type': 'application/json; charset=UTF-8' },
-            }).then(async (json: any) => {
+            }).then(async (json) => {
 
-                if (json.descriptions == "Sorry but the key is not in our database !") {
-                    interaction.reply(':x: **The key is not in the database !**');
+                let res = await json.json();
+
+                if (res.descriptions == "Sorry but the key is not in our database !" || res.title !== "Available") {
+                    await interaction.reply({ content: ':x: **The key is not in the database !**' });
                     return;
                 };
 
-                var ip = json.ip;
-                var key = json.key;
-
                 let embed = new EmbedBuilder()
-                    .setTitle("Finnish!")
+                    .setTitle(`Finnish! - ${res.title}`)
                     .setColor("#3b722e")
-                    .setDescription(`A key is check by: <@${interaction.user.id}>\n\`\`\`${key}\`\`\`This IPV4 is **${ip}**`)
+                    .setDescription(`A key is check by: <@${interaction.user.id}>\n\`\`\`${res.main.key}\`\`\`This IPV4 is **${res.main.ip}**`)
                     .setFooter({ text: 'by Kisakay', iconURL: client.user?.displayAvatarURL()! })
                     .setTimestamp();
 
-                await interaction.reply({ embeds: [embed] });
+                await interaction.editReply({ embeds: [embed] });
                 return;
             });
         }

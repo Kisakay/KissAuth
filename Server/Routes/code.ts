@@ -136,7 +136,7 @@ export = async (req: Request, res: Response, client: Client) => {
         return;
     };
 
-    if (tor == "CHECK_KEY" && adminKey != config.bot.bot_password) {
+    if (tor == "CHECK_KEY" && adminKey === config.server.server_authorizations) {
         let value = await db.get(`key_${key}`);
         let fetchIPV4 = { ip: value, key: key }
 
