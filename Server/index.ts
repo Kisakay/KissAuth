@@ -15,7 +15,7 @@ import {
 } from "pwss";
 
 import rateLimit from "express-rate-limit";
-import { logger } from "ihorizon-tools";
+import { generatePassword, logger } from "ihorizon-tools";
 import express from 'express';
 
 import { config } from './config';
@@ -67,8 +67,6 @@ client.on('ready', () => {
     logger.log(`Logged as ${client.user?.tag}`.green);
 });
 
-export const generateKey = (length: number) => [...Array(length)].map(() => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".charAt(Math.floor(Math.random() * 62))).join('');
-
 const commands = [
     {
         data: new SlashCommandBuilder()
@@ -91,26 +89,26 @@ const commands = [
             var adminKey = interaction.options.getString("admin_key")
 
             if (adminKey != config.bot.bot_password) {
-                interaction.reply("the admin token is not good :c");
+                await interaction.reply({ content: "`[❌]` The admin token is not good :c", ephemeral: true });
                 return;
             };
 
-            var keyy = generateKey(400);
+            var keyy = generatePassword({ length: 349 });
 
             let sltcv = new EmbedBuilder()
                 .setTitle("Key in creation")
                 .setDescription(`<@${interaction.user.id}> create: \n\`\`\`${keyy}\`\`\``)
                 .setColor("#000000")
-                .setFooter({ text: 'by Kisakay' });
+                .setFooter({ text: 'by Kisakay', iconURL: client.user?.displayAvatarURL()! });
 
-            interaction.reply({ embeds: [sltcv] });
-            interaction.channel?.send(`**->** <#${config.channel_log_id}>`);
+            await interaction.reply({ embeds: [sltcv], ephemeral: true });
+            await interaction.followUp({ content: `**->** <#${config.channel_log_id}>`, ephemeral: true });
 
             let embed = new EmbedBuilder()
                 .setTitle("Request to server...")
                 .setColor("#000000")
                 .setDescription(`A new key is for waiting by <@${interaction.user.id}>\n\`\`\`${keyy}\`\`\`IPV4: **${ip}**`)
-                .setFooter({ text: "by Kisakay" })
+                .setFooter({ text: 'by Kisakay', iconURL: client.user?.displayAvatarURL()! })
                 .setTimestamp();
 
             let channel = interaction.guild?.channels.cache.get(config.channel_log_id);
@@ -152,7 +150,7 @@ const commands = [
             var adminKey = interaction.options.getString("admin_key");
 
             if (adminKey != config.bot.bot_password) {
-                interaction.channel?.send("the admin token is not good :c");
+                await interaction.reply({ content: "`[❌]` The admin token is not good :c", ephemeral: true });
                 return;
             };
 
@@ -160,16 +158,16 @@ const commands = [
                 .setTitle("Pending deletion...")
                 .setDescription(`<@${interaction.user.id}> want to delete: \n\`\`\`${key}\`\`\``)
                 .setColor("#000000")
-                .setFooter({ text: 'by Kisakay' });
+                .setFooter({ text: 'by Kisakay', iconURL: client.user?.displayAvatarURL()! });
 
-            interaction.reply({ embeds: [sltcv] });
-            interaction.channel?.send(`**->** <#${config.channel_log_id}>`);
+            await interaction.reply({ embeds: [sltcv], ephemeral: true });
+            await interaction.followUp({ content: `**->** <#${config.channel_log_id}>`, ephemeral: true });
 
             const embed = new EmbedBuilder()
                 .setTitle("Request to server...")
                 .setColor("#000000")
                 .setDescription(`A key is pending deletion by: <@${interaction.user.id}>\n\`\`\`${key}\`\`\``)
-                .setFooter({ text: "by Kisakay" })
+                .setFooter({ text: 'by Kisakay', iconURL: client.user?.displayAvatarURL()! })
                 .setTimestamp();
 
             let channel = interaction.guild?.channels.cache.get(config.channel_log_id);
@@ -208,7 +206,7 @@ const commands = [
             var adminKey = interaction.options.getString('admin_key');
 
             if (adminKey != config.bot.bot_password) {
-                interaction.reply("the admin token is not good :c");
+                await interaction.reply({ content: "`[❌]` The admin token is not good :c", ephemeral: true });
                 return;
             };
 
@@ -216,16 +214,16 @@ const commands = [
                 .setTitle("Pending check...")
                 .setDescription(`<@${interaction.user.id}> want to check key: \n\`\`\`${key}\`\`\``)
                 .setColor("#000000")
-                .setFooter({ text: 'by Kisakay' });
+                .setFooter({ text: 'by Kisakay', iconURL: client.user?.displayAvatarURL()! });
 
-            interaction.channel?.send({ embeds: [sltcv] });
-            interaction.channel?.send(`**->**See Logs Here <#${config.channel_log_id}>`)
+            await interaction.reply({ embeds: [sltcv], ephemeral: true });
+            await interaction.followUp({ content: `**->**See Logs Here <#${config.channel_log_id}>`, ephemeral: true })
 
             let embed = new EmbedBuilder()
                 .setTitle("Request to server...")
                 .setColor("#000000")
                 .setDescription(`A key is check by: <@${interaction.user.id}>\n\`\`\`${key}\`\`\``)
-                .setFooter({ text: 'by Kisakay' })
+                .setFooter({ text: 'by Kisakay', iconURL: client.user?.displayAvatarURL()! })
                 .setTimestamp();
 
             let channel = interaction.guild?.channels.cache.get(config.channel_log_id);
@@ -240,7 +238,7 @@ const commands = [
                     tor: 'CHECK_KEY'
                 }),
                 headers: { 'Content-type': 'application/json; charset=UTF-8' },
-            }).then((json: any) => {
+            }).then(async (json: any) => {
 
                 if (json.descriptions == "Sorry but the key is not in our database !") {
                     interaction.reply(':x: **The key is not in the database !**');
@@ -254,10 +252,10 @@ const commands = [
                     .setTitle("Finnish!")
                     .setColor("#3b722e")
                     .setDescription(`A key is check by: <@${interaction.user.id}>\n\`\`\`${key}\`\`\`This IPV4 is **${ip}**`)
-                    .setFooter({ text: "by Kisakay" })
+                    .setFooter({ text: 'by Kisakay', iconURL: client.user?.displayAvatarURL()! })
                     .setTimestamp();
 
-                interaction.reply({ embeds: [embed] });
+                await interaction.reply({ embeds: [embed] });
                 return;
             });
         }
@@ -294,14 +292,14 @@ for (const cmd of commands) {
     }
 })();
 
-client.on(Events.InteractionCreate, interaction => {
+client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
     if (!config.permission.authorized.includes(interaction.user.id)
         || interaction.guild?.id !== config.guild_id
         || interaction.channelId !== config.channel_id) {
 
-        interaction.reply({ content: `:x:` })
+        await interaction.reply({ content: "`[❌]`", ephemeral: true });
         return;
     }
 
