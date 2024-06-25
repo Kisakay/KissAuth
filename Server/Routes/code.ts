@@ -11,6 +11,7 @@ import { Request, Response } from "express";
 
 import { JSONDriver, QuickDB } from 'quick.db';
 import { config } from '../config';
+import { logger } from "ihorizon-tools";
 
 const db = new QuickDB({ driver: new JSONDriver() });
 
@@ -66,17 +67,17 @@ export = async (req: Request, res: Response, client: Client) => {
     let ip: string = req.body.ip;
 
     if (!ip || !key) {
-        console.log("(1) -> Bad json request without ip/key");
+        logger.err("(1) -> Bad json request without ip/key");
         return;
     };
 
     if (tor !== 'CREATE_KEY' && tor !== 'DELETE_KEY' && tor !== 'CHECK_KEY' && tor !== 'LOGIN_KEY') {
-        console.log('(2) -> Bad json requests without options');
+        logger.err('(2) -> Bad json requests without options'.red);
         res.send('-> Bad json requests without options');
         return;
     }
 
-    console.log(`--------------------------------------------------------------------------------------------------------------------\nIP: ${ip}\nREQUEST TYPE: ${tor}\nADMINKEY: ${adminKey}\nKEY: ${key}\n--------------------------------------------------------------------------------------------------------------------`)
+    logger.legacy(`--------------------------------------------------------------------------------------------------------------------\nIP: ${ip}\nREQUEST TYPE: ${tor}\nADMINKEY: ${adminKey}\nKEY: ${key}\n--------------------------------------------------------------------------------------------------------------------`)
 
     if (tor == "CREATE_KEY" && adminKey == config.bot.bot_password) {
         await db.set(`key_${key}`, ip);

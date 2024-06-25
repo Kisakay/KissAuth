@@ -15,6 +15,7 @@ import {
 } from "pwss";
 
 import rateLimit from "express-rate-limit";
+import { logger } from "ihorizon-tools";
 import express from 'express';
 
 import { config } from './config';
@@ -56,13 +57,14 @@ app.post('/api/json', (req, res) => {
 });
 
 app.listen(config.server.server_port, () => {
-    console.log(`Listening on port ${config.server.server_port}`);
+    logger.log(`Listening on port :${config.server.server_port}`);
 });
 
 client.commands = new Collection();
 
 client.on('ready', () => {
-    console.log(`Logged as ${client.user?.tag}`)
+    logger.log(`https://discord.com/oauth2/authorize?client_id=${client.user?.id}&scope=bot&permissions=0`.gray);
+    logger.log(`Logged as ${client.user?.tag}`.green);
 });
 
 export const generateKey = (length: number) => [...Array(length)].map(() => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".charAt(Math.floor(Math.random() * 62))).join('');
@@ -265,14 +267,14 @@ const commands = [
 for (const cmd of commands) {
     if ('data' in cmd && 'run' in cmd) {
         client.commands.set(cmd.data.name, cmd);
-    } else { console.log(`[WARNING] The ${cmd}'s commands is missing a required "data" or "execute" property.`) }
+    } else { logger.err(`[WARNING] The ${cmd}'s commands is missing a required "data" or "execute" property.`.red) }
 }
 
 (async () => {
     const rest = new REST().setToken(config.bot.bot_token);
 
     try {
-        console.log(`Started refreshing ${commands.length} application (/) commands.`);
+        logger.log(`Started refreshing ${commands.length} application (/) commands.`.gray);
 
         const data = await rest.put(
             Routes.applicationCommands(config.bot.bot_id),
@@ -286,7 +288,7 @@ for (const cmd of commands) {
             },
         );
 
-        console.log(`Successfully reloaded ${(data as unknown as ApplicationCommand<{}>[]).length} application (/) commands.`);
+        logger.log(`Successfully reloaded ${(data as unknown as ApplicationCommand<{}>[]).length} application (/) commands.`.green);
     } catch (error) {
         console.error(error);
     }

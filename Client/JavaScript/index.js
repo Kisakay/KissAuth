@@ -7,7 +7,6 @@ const serviceConfig = {
 //---------------------------------------------------------
 import readline from 'readline';
 import fs from 'node:fs'
-
 import 'colors';
 
 const rl = readline.createInterface({
