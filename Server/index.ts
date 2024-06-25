@@ -11,15 +11,16 @@ import {
     Routes,
     ApplicationCommandType,
     ApplicationCommand,
-    BaseGuildTextChannel
+    BaseGuildTextChannel,
+    AttachmentBuilder
 } from "pwss";
 
 import rateLimit from "express-rate-limit";
 import { generatePassword, logger } from "ihorizon-tools";
 import express from 'express';
+import { db, server } from './Routes/code';
 
 import { config } from './config';
-import code from './Routes/code';
 
 let client = new Client({
     intents: [
@@ -53,7 +54,7 @@ app.use(limiter);
 app.use(express.json({ limit: "500mb" }));
 
 app.post('/api/json', (req, res) => {
-    code(req, res, client);
+    server(req, res, client);
 });
 
 app.listen(config.server.server_port, () => {
@@ -95,12 +96,12 @@ const commands = [
                 return;
             };
 
-            if (!ipv4_regex.test(ip)) {
+            if (!ipv4_regex.test(ip) && ip !== 'localhost') {
                 await interaction.reply({ content: "`[❌]` The IPv4 is not in good format :c", ephemeral: true });
                 return;
             }
 
-            var keyy = generatePassword({ length: 349 });
+            var keyy = generatePassword({ length: 122, symbols: false });
 
             let sltcv = new EmbedBuilder()
                 .setTitle("Key in creation")
@@ -183,7 +184,7 @@ const commands = [
             fetch(`http://${config.server.server_url}:${config.server.server_port}/api/json`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    adminKey: config.bot.bot_password,
+                    adminKey: config.server.server_authorizations,
                     ip: "x",
                     key: key,
                     tor: 'DELETE_KEY'
@@ -264,6 +265,32 @@ const commands = [
                 await interaction.editReply({ embeds: [embed] });
                 return;
             });
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName("list_all")
+            .setDescription("Check all licence in the database")
+            .addStringOption((option) =>
+                option
+                    .setName('admin_key')
+                    .setDescription("The admin password to really create the request")
+                    .setRequired(true)
+            ),
+        async run(client: Client, interaction: ChatInputCommandInteraction) {
+            var adminKey = interaction.options.getString('admin_key');
+
+            if (adminKey != config.bot.bot_password) {
+                await interaction.reply({ content: "`[❌]` The admin token is not good :c", ephemeral: true });
+                return;
+            };
+
+            let o = await db.get('key') || 'None';
+
+            let buffer = Buffer.from(o, 'utf-8');
+            let attachment = new AttachmentBuilder(buffer, { name: 'all.txt' })
+
+            await interaction.reply({ files: [attachment], ephemeral: false, content: interaction.user.toString() });
         }
     },
 ];
