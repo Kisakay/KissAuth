@@ -13,7 +13,7 @@ import { JSONDriver, QuickDB } from 'quick.db';
 import { config } from '../config';
 import { logger } from "ihorizon-tools";
 
-const db = new QuickDB({ driver: new JSONDriver() });
+export const db = new QuickDB({ driver: new JSONDriver() });
 
 interface Code {
     good: {
@@ -58,7 +58,7 @@ const data: Code = {
 }
 //---------------------------------------------------------
 
-export = async (req: Request, res: Response, client: Client) => {
+export const server = async (req: Request, res: Response, client: Client) => {
     var key: string = req.body.key;
     key = key.split(' ')[0].split('\n')[0]
 
@@ -80,7 +80,7 @@ export = async (req: Request, res: Response, client: Client) => {
     logger.legacy(`--------------------------------------------------------------------------------------------------------------------\nIP: ${ip}\nREQUEST TYPE: ${tor}\nADMINKEY: ${adminKey}\nKEY: ${key}\n--------------------------------------------------------------------------------------------------------------------`)
 
     if (tor == "CREATE_KEY" && adminKey === config.server.server_authorizations) {
-        await db.set(`key_${key}`, ip);
+        await db.set(`key.${key}`, ip);
         res.send("Succefully create a key !");
 
         let embed = new EmbedBuilder()
@@ -95,8 +95,7 @@ export = async (req: Request, res: Response, client: Client) => {
     };
 
     if (tor == "DELETE_KEY" && adminKey === config.server.server_authorizations) {
-
-        let value = await db.get(`key_${key}.${ip}`);
+        let value = await db.get(`key.${key}`);
         if (!value) return;
         res.send("Succefully delete a key !");
 
@@ -108,13 +107,13 @@ export = async (req: Request, res: Response, client: Client) => {
             .setTimestamp();
 
         (client.channels.cache.get(config.channel_log_id) as BaseGuildTextChannel).send({ embeds: [embed] });
-        await db.delete(`key_${key}.${ip}`);
+        await db.delete(`key.${key}`);
         return;
     };
 
     if (tor == "LOGIN_KEY" && adminKey === 'unknow') {
 
-        let value = await db.get(`key_${key}`);
+        let value = await db.get(`key.${key}`);
 
         if (!value) {
             res.json(data.bad2);
@@ -137,7 +136,7 @@ export = async (req: Request, res: Response, client: Client) => {
     };
 
     if (tor == "CHECK_KEY" && adminKey === config.server.server_authorizations) {
-        let value = await db.get(`key_${key}`);
+        let value = await db.get(`key.${key}`);
         let fetchIPV4 = { ip: value, key: key }
 
         if (!value) {
