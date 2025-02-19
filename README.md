@@ -1,4 +1,4 @@
-# License Key Management System - Kiss-Authentificator-V3
+# License Key Management System - KissAuth
 
 This project is a Discord bot and a corresponding server application for managing license keys for a software service.
 
@@ -21,8 +21,8 @@ To install and set up the project, follow these steps:
 1. Clone the project repository from GitHub:
 
     ```bash
-    git clone https://github.com/Kisakay/Kiss-Authentificator-V3.git
-    cd ./Kiss-Authentificator-V3
+    git clone https://github.com/Kisakay/KissAuth.git
+    cd ./KissAuth
     ```
 
 2. Install dependencies for both the Discord bot and the server application:

@@ -1,3 +1,15 @@
+/*
+
+▗▖ ▗▖▄  ▄▄▄  ▄▄▄  ▗▄▖ █  ▐▌   ■  ▐▌   
+▐▌▗▞▘▄ ▀▄▄  ▀▄▄  ▐▌ ▐▌▀▄▄▞▘▗▄▟▙▄▖▐▌   
+▐▛▚▖ █ ▄▄▄▀ ▄▄▄▀ ▐▛▀▜▌       ▐▌  ▐▛▀▚▖
+▐▌ ▐▌█           ▐▌ ▐▌       ▐▌  ▐▌ ▐▌
+                             ▐▌       
+    ・ Project under MIT License
+    ・ Made by: @Kisakay
+    ・ Repository: https://github.com/Kisakay/KissAuth
+*/
+
 const config = {
     guild_id: "661161030610063",
     channel_id: "861615615155532",
@@ -5,13 +17,11 @@ const config = {
     
     bot: {
         bot_token: "The bot Token",
-        bot_prefix: "+",
         bot_password: "The bot password used in the command",
-        bot_id: ""
     },
 
     permission: {
-        authorized: [
+        white_list: [
 
             "Owner's ID One", "Owner's ID Two"
 

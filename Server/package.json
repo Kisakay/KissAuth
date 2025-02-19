@@ -1,7 +1,7 @@
 {
-  "name": "kiss-authentificator-v3",
-  "version": "3.0.0",
-  "description": "Kiss-Authentificator remade in TypeScript",
+  "name": "kissauth",
+  "version": "4.0.0",
+  "description": "KissAuth remade in TypeScript",
   "main": "./dist/index.js",
   "scripts": {
     "test": "npx tsc && node ./dist/index.js",
@@ -11,25 +11,27 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Kisakay/Kiss-Authentificator-V3.git"
+    "url": "git+https://github.com/Kisakay/KissAuth.git"
   },
+  "type": "module",
   "author": "Kisakay",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Kisakay/Kiss-Authentificator-V3/issues"
+    "url": "https://github.com/Kisakay/KissAuth/issues"
   },
-  "homepage": "https://github.com/Kisakay/Kiss-Authentificator-V3#readme",
+  "homepage": "https://github.com/Kisakay/KissAuth#readme",
   "dependencies": {
-    "express": "^4.18.2",
-    "express-rate-limit": "^7.1.1",
-    "ihorizon-tools": "^1.0.4",
-    "pwss": "^1.0.21",
-    "quick.db": "^9.1.7",
-    "write-file-atomic": "^5.0.1"
+    "cors": "^2.8.5",
+    "discord.js": "^14.18.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "ihorizon-tools": "^1.4.3",
+    "pallas-db": "^1.0.14",
+    "pwss": "^1.0.21"
   },
   "devDependencies": {
-    "@types/express": "^4.17.19",
-    "tslib": "^2.6.2",
-    "typescript": "^5.3.3"
+    "@types/express": "^4.17.21",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.3"
   }
 }

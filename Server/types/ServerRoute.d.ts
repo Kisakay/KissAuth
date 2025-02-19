@@ -10,15 +10,10 @@
     ・ Repository: https://github.com/Kisakay/KissAuth
 */
 
-import { logger } from "ihorizon-tools";
-import { Server } from "./api/server.js";
-import { Bot } from "./bot/bot.js";
+import { Request, Response } from "express";
 
-export const printer = logger;
-
-printer.legacy("[".gray + "PROCESS".blue + "]".gray + " KissAuth process starting...");
-
-const server = new Server();
-const bot = new Bot();
-
-export { server, bot };
+export interface ServerRoute {
+    path: string;
+    method: 'get' | 'post' | 'put' | 'delete' | 'patch' | 'options' | 'head';
+    async evaluate: (req: Request, res: Response) => void;
+}

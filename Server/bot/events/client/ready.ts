@@ -10,15 +10,14 @@
     ・ Repository: https://github.com/Kisakay/KissAuth
 */
 
-import { logger } from "ihorizon-tools";
-import { Server } from "./api/server.js";
-import { Bot } from "./bot/bot.js";
+import { printer } from "../../../index.js";
+import { BotEvent } from "../../../types/BotEvent.js";
 
-export const printer = logger;
+export const event: BotEvent = {
+    name: "ready",
+    once: false,
 
-printer.legacy("[".gray + "PROCESS".blue + "]".gray + " KissAuth process starting...");
-
-const server = new Server();
-const bot = new Bot();
-
-export { server, bot };
+    async evaluate(client) {
+        printer.legacy("[".green + "BOT".blue + "]".green + " KissAuth Bot logged as " + client.user?.tag + "\n".gray + `Invite Link: https://discord.com/oauth2/authorize?client_id=${client.user?.id}&scope=bot&permissions=0`.gray);
+    }
+}

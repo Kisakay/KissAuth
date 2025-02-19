@@ -2,27 +2,29 @@
     "compilerOptions": {
         "strict": true,
         "outDir": "dist",
-        "module": "commonjs",
-        "target": "es2022",
-        "moduleResolution": "Node",
+        "module": "NodeNext",
+        "target": "ESNext",
+        "moduleResolution": "node16",
         "resolveJsonModule": true,
         "useUnknownInCatchVariables": true,
         "allowUnreachableCode": false,
         "esModuleInterop": true,
         "skipLibCheck": true,
         "importHelpers": true,
-        "types": [
-            "node"
+        "strictPropertyInitialization": false,
+        "typeRoots": [
+            "node_modules/@types"
         ],
-        "strictPropertyInitialization": false
     },
     "include": [
-        "./"
+        ".",
+        "src/**/*.json",
     ],
     "exclude": [
         "/.github",
         "./dist",
         "./node_modules",
-        "./config.example.ts"
+        "./src/files/config.example.ts",
+        "./ownihrz"
     ]
 }

@@ -10,15 +10,21 @@
     ・ Repository: https://github.com/Kisakay/KissAuth
 */
 
-import { logger } from "ihorizon-tools";
-import { Server } from "./api/server.js";
-import { Bot } from "./bot/bot.js";
+import { Database } from "../database.js";
 
-export const printer = logger;
+export async function CreateLicense(key: string, ip: string) {
+    const license_table = Database.table("license");
+    const isExist = await license_table.get(`key.${key}`) !== undefined;
 
-printer.legacy("[".gray + "PROCESS".blue + "]".gray + " KissAuth process starting...");
+    if (isExist) {
+        return {
+            error: "Key already exists"
+        };
+    }
 
-const server = new Server();
-const bot = new Bot();
+    await license_table.set(`key.${key}`, ip);
 
-export { server, bot };
+    return {
+        success: true
+    };
+}

@@ -1,19 +1,21 @@
 /*
- *     ____                       ___         __  __               __  _ _____            __                
- *    / __ \___  ____ _________  /   | __  __/ /_/ /_  ___  ____  / /_(_) __(_)________ _/ /_____  _____    
- *   / /_/ / _ \/ __ `/ ___/ _ \/ /| |/ / / / __/ __ \/ _ \/ __ \/ __/ / /_/ / ___/ __ `/ __/ __ \/ ___/    
- *  / ____/  __/ /_/ / /__/  __/ ___ / /_/ / /_/ / / /  __/ / / / /_/ / __/ / /__/ /_/ / /_/ /_/ / /        
- * /_/    \___/\__,_/\___/\___/_/  |_\__,_/\__/_/ /_/\___/_/ /_/\__/_/_/ /_/\___/\__,_/\__/\____/_/                                                    
+
+▗▖ ▗▖▄  ▄▄▄  ▄▄▄  ▗▄▖ █  ▐▌   ■  ▐▌   
+▐▌▗▞▘▄ ▀▄▄  ▀▄▄  ▐▌ ▐▌▀▄▄▞▘▗▄▟▙▄▖▐▌   
+▐▛▚▖ █ ▄▄▄▀ ▄▄▄▀ ▐▛▀▜▌       ▐▌  ▐▛▀▚▖
+▐▌ ▐▌█           ▐▌ ▐▌       ▐▌  ▐▌ ▐▌
+                             ▐▌       
+    ・ Project under MIT License
+    ・ Made by: @Kisakay
+    ・ Repository: https://github.com/Kisakay/KissAuth
 */
 
-import { BaseGuildTextChannel, Client, EmbedBuilder } from "pwss";
+import { BaseGuildTextChannel, Client, EmbedBuilder } from "discord.js";
 import { Request, Response } from "express";
 
-import { JSONDriver, QuickDB } from 'quick.db';
-import { config } from '../config';
+import { config } from '../../config.js';
 import { logger } from "ihorizon-tools";
-
-export const db = new QuickDB({ driver: new JSONDriver() });
+import { Database } from "../../shared/database.js";
 
 interface Code {
     good: {
@@ -80,7 +82,7 @@ export const server = async (req: Request, res: Response, client: Client) => {
     logger.legacy(`--------------------------------------------------------------------------------------------------------------------\nIP: ${ip}\nREQUEST TYPE: ${tor}\nADMINKEY: ${adminKey}\nKEY: ${key}\n--------------------------------------------------------------------------------------------------------------------`)
 
     if (tor == "CREATE_KEY" && adminKey === config.server.server_authorizations) {
-        await db.set(`key.${key}`, ip);
+        await Database.set(`key.${key}`, ip);
         res.send("Succefully create a key !");
 
         let embed = new EmbedBuilder()
@@ -95,7 +97,7 @@ export const server = async (req: Request, res: Response, client: Client) => {
     };
 
     if (tor == "DELETE_KEY" && adminKey === config.server.server_authorizations) {
-        let value = await db.get(`key.${key}`);
+        let value = await Database.get(`key.${key}`);
         if (!value) return;
         res.send("Succefully delete a key !");
 
@@ -107,13 +109,13 @@ export const server = async (req: Request, res: Response, client: Client) => {
             .setTimestamp();
 
         (client.channels.cache.get(config.channel_log_id) as BaseGuildTextChannel).send({ embeds: [embed] });
-        await db.delete(`key.${key}`);
+        await Database.delete(`key.${key}`);
         return;
     };
 
     if (tor == "LOGIN_KEY" && adminKey === 'unknow') {
 
-        let value = await db.get(`key.${key}`);
+        let value = await Database.get(`key.${key}`);
 
         if (!value) {
             res.json(data.bad2);
@@ -136,7 +138,7 @@ export const server = async (req: Request, res: Response, client: Client) => {
     };
 
     if (tor == "CHECK_KEY" && adminKey === config.server.server_authorizations) {
-        let value = await db.get(`key.${key}`);
+        let value = await Database.get(`key.${key}`);
         let fetchIPV4 = { ip: value, key: key }
 
         if (!value) {

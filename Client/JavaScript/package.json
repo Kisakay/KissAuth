@@ -1,5 +1,5 @@
 {
-  "name": "client-kiss-authentificator-v3",
+  "name": "client-KissAuth",
   "version": "2.0.0",
   "description": "Kiss Authentificator create with post json (with key) + IP CHECKER",
   "main": "index.js",
@@ -12,12 +12,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Kisakay/Kiss-Authentificator-V3.git"
+    "url": "git+https://github.com/Kisakay/KissAuth.git"
   },
   "author": "Kisakay",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Kisakay/Kiss-Authentificator-V3/issues"
+    "url": "https://github.com/Kisakay/KissAuth/issues"
   },
-  "homepage": "https://github.com/Kisakay/Kiss-Authentificator-V3#readme"
+  "homepage": "https://github.com/Kisakay/KissAuth#readme"
 }
