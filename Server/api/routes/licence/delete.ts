@@ -62,9 +62,15 @@ export const route: ServerRoute = {
         let client = bot.getClient();
 
         let embed = new EmbedBuilder()
-            .setTitle("Server ~:")
-            .setColor("#008000")
-            .setDescription(`A key has deleted\`\`\`${key}\`\`\`This IPV4 is **${state.ip}**`)
+            .setTitle("[API] - License Deletion")
+            .setColor("Aqua")
+            .setFields(
+                {
+                    name: "License Key",
+                    value: `||${key}||`,
+                    inline: false
+                }
+            )
             .setFooter({ text: "by Kisakay" })
             .setTimestamp();
 

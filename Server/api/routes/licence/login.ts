@@ -24,9 +24,11 @@ export const route: ServerRoute = {
     async evaluate(req, res) {
         const {
             key,
-            ip,
             adminKey
         } = req.body;
+
+        // Get the ip
+        const ip = (typeof req.headers['x-forwarded-for'] === 'string' ? req.headers['x-forwarded-for'] : req.socket.remoteAddress) as string | undefined;
 
         if (!key || !ip || !adminKey) {
             return res.status(400).json({
@@ -56,9 +58,20 @@ export const route: ServerRoute = {
         let client = bot.getClient();
 
         let embed = new EmbedBuilder()
-            .setTitle("Server ~:")
-            .setColor("#008000")
-            .setDescription(`A key has use for login\`\`\`${key}\`\`\`This IPV4 is **${state.ip}**`)
+            .setTitle("[API] - Login")
+            .setColor("Aqua")
+            .setFields(
+                {
+                    name: "License Key",
+                    value: `||${key}||`,
+                    inline: false
+                },
+                {
+                    name: "Internet Protocol",
+                    value: `||${state.ip}||, ||${ip}||`,
+                    inline: false
+                }
+            )
             .setFooter({ text: "by Kisakay" })
             .setTimestamp();
 

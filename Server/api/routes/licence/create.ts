@@ -63,9 +63,20 @@ export const route: ServerRoute = {
         let client = bot.getClient();
 
         let embed = new EmbedBuilder()
-            .setTitle("Server ~:")
-            .setColor("#008000")
-            .setDescription(`A key has created\`\`\`${key}\`\`\`This IPV4 is **${ip}**`)
+            .setTitle("[API] - License Creation")
+            .setColor("Aqua")
+            .setFields(
+                {
+                    name: "License Key",
+                    value: `||${key}||`,
+                    inline: false
+                },
+                {
+                    name: "Internet Protocol",
+                    value: `||${ip}||`,
+                    inline: false
+                }
+            )
             .setFooter({ text: "by Kisakay" })
             .setTimestamp();
 
