@@ -10,7 +10,7 @@
     ・ Repository: https://github.com/Kisakay/KissAuth
 */
 
-import { BaseGuildTextChannel, EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { BaseGuildTextChannel, EmbedBuilder, SlashCommandBuilder, ChatInputCommandInteraction } from "discord.js";
 import { BotCommand } from "../../../types/CommandsBot.js";
 import { config } from "../../../config.js";
 import { CheckLicense } from "../../../shared/func/checkLicense.js";
@@ -32,7 +32,7 @@ export const command: BotCommand = {
                 .setRequired(true)
         )
         .toJSON(),
-    async evaluate(client, interaction) {
+    async evaluate(client, interaction: ChatInputCommandInteraction) {
         var key = interaction.options.getString('key');
         var adminKey = interaction.options.getString('password');
 
@@ -60,10 +60,10 @@ export const command: BotCommand = {
         let channel = interaction.guild?.channels.cache.get(config.channel_log_id);
         (channel as BaseGuildTextChannel).send({ embeds: [embed] });
 
-        let state = await CheckLicense(key);
+        let state = await CheckLicense(key || "");
 
         if (state.error) {
-            await interaction.reply({ content: ':x: **The key is not in the database !**' });
+            await interaction.editReply({ content: ':x: **The key is not in the database !**' });
             return;
         };
 

@@ -21,4 +21,12 @@ printer.legacy("[".gray + "PROCESS".blue + "]".gray + " KissAuth process startin
 const server = new Server();
 const bot = new Bot();
 
+process.on("uncaughtException", (err) => {
+    printer.err("[".gray + "ERROR".red + "]".gray + " Uncaught Exception: " + err);
+})
+
+process.on("unhandledRejection", (err) => {
+    printer.err("[".gray + "ERROR".red + "]".gray + " Unhandled Rejection: " + err);
+})
+
 export { server, bot };

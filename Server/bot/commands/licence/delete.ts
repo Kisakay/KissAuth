@@ -33,7 +33,7 @@ export const command: BotCommand = {
         )
         .toJSON(),
     async evaluate(client, interaction) {
-        var key = interaction.options.getString("key");
+        var key = interaction.options.getString("key")!;
         var adminKey = interaction.options.getString("password");
 
         if (adminKey != config.bot.bot_password) {
