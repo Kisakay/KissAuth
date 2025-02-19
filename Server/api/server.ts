@@ -46,9 +46,9 @@ class Server {
         this.app.use(limiter);
         this.app.use(express.json({ limit: "500mb" }));
 
-        this.app.post('/api/json', (req, res) => {
-            // server(req, res, db);
-        });
+        // this.app.post('/api/json', (req, res) => {
+        //     // server(req, res, db);
+        // });
     }
 
     private async routes_handler() {
@@ -68,12 +68,12 @@ class Server {
 
             for (const file of categoryFolder) {
                 const routePath = path.join(categoryPath, file);
-                const { routes: _routes } = await import(routePath);
+                const { route: _route } = await import(routePath);
 
-                if (!_routes) continue;
+                if (!_route) continue;
 
-                if ('path' in _routes && 'method' in _routes && 'evaluate' in _routes) {
-                    const route = _routes as ServerRoute;
+                if ('path' in _route && 'method' in _route && 'evaluate' in _route) {
+                    const route = _route as ServerRoute;
 
                     this.app[route.method](route.path, route.evaluate);
                 }

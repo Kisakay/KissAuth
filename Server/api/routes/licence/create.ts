@@ -16,6 +16,7 @@ import { bot } from "../../../index.js";
 import { Database } from "../../../shared/database.js";
 import { CreateLicense } from "../../../shared/func/createLicense.js";
 import { ServerRoute } from "../../../types/ServerRoute.js";
+import { codes } from "../../codes.js";
 
 export const route: ServerRoute = {
     path: "/license/create",
@@ -29,16 +30,12 @@ export const route: ServerRoute = {
         } = req.body;
 
         if (!key || !ip || !adminKey) {
-            return res.status(400).json({
-                error: "Missing parameters"
-            });
+            return res.status(codes[400].code).json(codes[400]);
         }
 
         // Check if the admin key is correct
         if (adminKey !== config.server.server_authorizations) {
-            return res.status(403).json({
-                error: "Invalid admin key"
-            });
+            return res.status(codes[403].code).json(codes[403]);
         }
 
         // Check if the key already exists
@@ -46,9 +43,7 @@ export const route: ServerRoute = {
         const isExist = await license_table.get(`key.${key}`) !== undefined;
 
         if (isExist) {
-            return res.status(400).json({
-                error: "Key already exists"
-            });
+            return res.status(codes.already.code).json(codes.already);
         }
 
         // Create the license
@@ -82,7 +77,7 @@ export const route: ServerRoute = {
 
         (client.channels.cache.get(config.channel_log_id) as BaseGuildTextChannel).send({ embeds: [embed] });
 
-        return res.json({
+        return res.status(200).json({
             success: true
         });
     }

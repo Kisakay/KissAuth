@@ -5,40 +5,18 @@ const serviceConfig = {
 };
 
 //---------------------------------------------------------
-const readline = require('readline');
-const process = require('process');
+const readline = require('node:readline');
+const process = require('node:process');
 const fs = require('node:fs');
-require('colors');
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-async function ipify({ useIPv6 = true, endpoint } = {}) {
-    const IPIFY_ENDPOINT_IPV4 = 'https://api.ipify.org';
-    const IPIFY_ENDPOINT_IPV6 = 'https://api6.ipify.org';
-
-    if (endpoint === undefined) {
-        endpoint = useIPv6 ? IPIFY_ENDPOINT_IPV6 : IPIFY_ENDPOINT_IPV4;
-    }
-
-    try {
-        const response = await fetch(endpoint);
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return await response.text();
-    } catch (error) {
-        throw new Error(`Failed to fetch IP address: ${error.message}`);
-    }
-};
-
 async function licenceChecker() {
 
     console.log('Checking if you are already activate the software...');
-
-    let myip = await ipify({ useIPv6: false });
 
     if (!fs.existsSync("key.db")) {
         return get()
@@ -47,26 +25,24 @@ async function licenceChecker() {
             if (data) {
                 let lines = data.split("\n");
 
-                fetch(`http://${serviceConfig.url}:${serviceConfig.port}/api/json`, {
+                fetch(`http://${serviceConfig.url}:${serviceConfig.port}/license/login`, {
                     method: 'POST',
                     body: JSON.stringify({
                         adminKey: "unknow",
-                        ip: myip,
                         key: lines[0],
-                        tor: 'LOGIN_KEY'
                     }),
                     headers: { 'Content-type': 'application/json; charset=UTF-8' },
                 })
-                    .then((json) => {
-                        var statussrv = json.title;
+                    .then(async (res) => {
+                        var states = await res.json();
 
-                        if (statussrv === 'Succeful') {
-                            console.log(`Yeah, ${serviceConfig.serviceName} is activate !`.rainbow.bold)
-                            console.log("-----> Starting The Software...".green.bold)
+                        if (states.success) {
+                            console.log(`Yeah, ${serviceConfig.serviceName} is activate !`)
+                            console.log("-----> Starting The Software...")
                             //starting ...
                             start()
                         } else {
-                            if (statussrv === "Bad ip with your key !") {
+                            if (states.error === "Bad ip with your key !") {
                                 start()
                             } else {
                                 get()
@@ -84,39 +60,35 @@ async function licenceChecker() {
 licenceChecker()
 
 async function get() {
-    const myip = await ipify({ useIPv6: false });
+    rl.question(`Hey, ${serviceConfig.serviceName} is not free ! Do you have key? If you here, i think is yes ! Type you key please :\n` + "key ~> ", (answer) => {
+        console.log('[API]' + ' >> Checking if your key is available');
 
-    rl.question(`Hey, ${serviceConfig.serviceName} is not free ! Do you have key? If you here, i think is yes ! Type you key please :\n`.red + "key ~> ".blue, (answer) => {
-        console.log('[API]'.green + ' >> Checking if your key is available'.yellow);
-
-        fetch(`http://${serviceConfig.url}:${serviceConfig.port}/api/json`, {
+        fetch(`http://${serviceConfig.url}:${serviceConfig.port}/license/login`, {
             method: 'POST',
             body: JSON.stringify({
                 adminKey: "unknow",
-                ip: myip,
                 key: answer,
-                tor: 'LOGIN_KEY'
             }),
             headers: { 'Content-type': 'application/json; charset=UTF-8' },
         })
-            .then((response) => response.json())
-            .then((json) => {
-                var statussrv = json.title;
+            .then(async (res) => {
+                var states = await res.json();
 
-                if (statussrv === 'Succeful') {
-                    console.log(`Yeah, you just activate ${serviceConfig.serviceName}, gg !`.rainbow.bold)
+                if (states.success) {
+                    console.log(`Yeah, you just activate ${serviceConfig.serviceName}, gg !`)
                     //writing in db
                     fs.writeFile('key.db', `${answer}\nby Kisakay with <3`, function (err) {
                         if (err) throw err;
                         //the software :
                         start();
                     });
+                    return;
                 }
-                if (statussrv === "Your key is not unvailable !") {
-                    console.log("No, this key is not correct ! Please contact support, if you don't have key !".red.bold);
+                if (states.error === "Key doesn't exist") {
+                    console.log("No, this key is not correct ! Please contact support, if you don't have key !");
                     process.exit(1);
-                } else if (statussrv === "Bad ip with your key !") {
-                    console.log("Your key is not associed to this ip ! Please disable your vpn or switch to classical connections !\nFor more informations please contact the support !\nIf you don't know, 1* Key is for 1* People !".red.bold)
+                } else if (states.error === "Bad ip with your key !") {
+                    console.log("Your key is not associed to this ip ! Please disable your vpn or switch to classical connections !\nFor more informations please contact the support !\nIf you don't know, 1* Key is for 1* People !")
                     process.exit(1);
                 }
             })

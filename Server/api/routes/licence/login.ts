@@ -16,6 +16,7 @@ import { Database } from "../../../shared/database.js";
 import { CheckLicense } from "../../../shared/func/checkLicense.js";
 import { ServerRoute } from "../../../types/ServerRoute.js";
 import { config } from "../../../config.example.js";
+import { codes } from "../../codes.js";
 
 export const route: ServerRoute = {
     path: "/license/login",
@@ -31,9 +32,7 @@ export const route: ServerRoute = {
         const ip = (typeof req.headers['x-forwarded-for'] === 'string' ? req.headers['x-forwarded-for'] : req.socket.remoteAddress) as string | undefined;
 
         if (!key || !ip || !adminKey) {
-            return res.status(400).json({
-                error: "Missing parameters"
-            });
+            return res.status(codes[400].code).json(codes[400]);
         }
 
         // Check if the key already exists
@@ -77,7 +76,7 @@ export const route: ServerRoute = {
 
         (client.channels.cache.get(config.channel_log_id) as BaseGuildTextChannel).send({ embeds: [embed] });
 
-        return res.json({
+        return res.status(200).json({
             success: true
         });
     }
