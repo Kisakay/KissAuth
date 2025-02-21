@@ -132,3 +132,4 @@ Client/Rust/key.db
 bun.lockb
 Server/quickdb.json
 *.lock
+*.sqlite
