@@ -25,13 +25,12 @@ export const route: ServerRoute = {
     async evaluate(req, res) {
         const {
             key,
-            adminKey
         } = req.body;
 
         // Get the ip
         const ip = (typeof req.headers['x-forwarded-for'] === 'string' ? req.headers['x-forwarded-for'] : req.socket.remoteAddress) as string | undefined;
 
-        if (!key || !ip || !adminKey) {
+        if (!key || !ip) {
             return res.status(codes[400].code).json(codes[400]);
         }
 

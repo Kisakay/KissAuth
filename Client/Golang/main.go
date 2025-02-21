@@ -8,159 +8,150 @@ import (
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/fatih/color"
 )
 
-var serviceConfig = struct {
-	Port        int
-	URL         string
-	ServiceName string
-}{
+type ServiceConfig struct {
+	Port        int    `json:"port"`
+	URL         string `json:"url"`
+	ServiceName string `json:"serviceName"`
+}
+
+type LicenseRequest struct {
+	Key string `json:"key"`
+}
+
+type LicenseResponse struct {
+	Success bool   `json:"success"`
+	Error   string `json:"error"`
+}
+
+var serviceConfig = ServiceConfig{
 	Port:        3030,
 	URL:         "127.0.0.1",
 	ServiceName: "Example software name",
 }
 
-func ipify() (string, error) {
-	resp, err := http.Get("https://api.ipify.org")
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	return string(body), nil
+func main() {
+	licenceChecker()
 }
 
 func licenceChecker() {
-	fmt.Println("Checking if you have already activated the software...")
-	myIP, err := ipify()
-	if err != nil {
-		fmt.Println("Failed to get IP address:", err)
-		return
-	}
+	fmt.Println("Checking if you are already activate the software...")
 
 	if _, err := os.Stat("key.db"); os.IsNotExist(err) {
 		get()
-		return
-	}
-
-	keyData, err := ioutil.ReadFile("key.db")
-	if err != nil {
-		fmt.Println("Failed to read key file:", err)
-		return
-	}
-	key := strings.Split(string(keyData), "\n")[0]
-
-	jsonData := map[string]interface{}{
-		"adminKey": "unknown",
-		"ip":       myIP,
-		"key":      key,
-		"tor":      "LOGIN_KEY",
-	}
-	jsonValue, _ := json.Marshal(jsonData)
-
-	resp, err := http.Post(fmt.Sprintf("http://%s:%d/api/json", serviceConfig.URL, serviceConfig.Port), "application/json", bytes.NewBuffer(jsonValue))
-	if err != nil {
-		fmt.Println("Failed to send request to server:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	var result map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		fmt.Println("Failed to decode server response:", err)
-		return
-	}
-
-	status := result["title"].(string)
-	if status == "Successful" {
-		fmt.Printf("Yeah, %s is activated!\n", serviceConfig.ServiceName)
-		fmt.Println("-----> Starting The Software...")
-		start()
 	} else {
-		if status == "Bad ip with your key !" {
-			start()
-		} else {
+		data, err := ioutil.ReadFile("key.db")
+		if err != nil {
+			fmt.Println("Error reading key file:", err)
 			get()
+			return
+		}
+
+		if len(data) > 0 {
+			lines := strings.Split(string(data), "\n")
+			
+			licenseReq := LicenseRequest{
+				Key: lines[0],
+			}
+			
+			reqBody, err := json.Marshal(licenseReq)
+			if err != nil {
+				fmt.Println("Error marshaling request:", err)
+				return
+			}
+
+			resp, err := http.Post(
+				fmt.Sprintf("http://%s:%d/license/login", serviceConfig.URL, serviceConfig.Port),
+				"application/json; charset=UTF-8",
+				bytes.NewBuffer(reqBody),
+			)
+			
+			if err != nil {
+				fmt.Println("Error making request:", err)
+				return
+			}
+			defer resp.Body.Close()
+
+			var states LicenseResponse
+			body, _ := ioutil.ReadAll(resp.Body)
+			json.Unmarshal(body, &states)
+
+			if states.Success {
+				fmt.Printf("Yeah, %s is activate !\n", serviceConfig.ServiceName)
+				fmt.Println("-----> Starting The Software...")
+				start()
+			} else {
+				if states.Error == "Bad ip with your key !" {
+					start()
+				} else {
+					get()
+				}
+			}
 		}
 	}
 }
 
 func get() {
-	myIP, err := ipify()
+	fmt.Printf("Hey, %s is not free ! Do you have key? If you here, i think is yes ! Type you key please :\n", serviceConfig.ServiceName)
+	fmt.Print("key ~> ")
+	
+	var answer string
+	fmt.Scanln(&answer)
+	
+	fmt.Println("[API] >> Checking if your key is available")
+
+	licenseReq := LicenseRequest{
+		Key: answer,
+	}
+	
+	reqBody, err := json.Marshal(licenseReq)
 	if err != nil {
-		fmt.Println("Failed to get IP address:", err)
+		fmt.Println("Error marshaling request:", err)
 		return
 	}
 
-	fmt.Printf("Hey, %s is not free! Do you have a key? If you're here, I think yes! Please type your key:\n", serviceConfig.ServiceName)
-
-	var key string
-	fmt.Print(color.RedString("key ~> "))
-	fmt.Scanln(&key)
-
-	fmt.Println(color.GreenString("[API]") + " >> Checking if your key is available")
-
-	jsonData := map[string]interface{}{
-		"adminKey": "unknown",
-		"ip":       myIP,
-		"key":      key,
-		"tor":      "LOGIN_KEY",
-	}
-	jsonValue, _ := json.Marshal(jsonData)
-
-	resp, err := http.Post(fmt.Sprintf("http://%s:%d/api/json", serviceConfig.URL, serviceConfig.Port), "application/json", bytes.NewBuffer(jsonValue))
+	resp, err := http.Post(
+		fmt.Sprintf("http://%s:%d/license/login", serviceConfig.URL, serviceConfig.Port),
+		"application/json; charset=UTF-8",
+		bytes.NewBuffer(reqBody),
+	)
+	
 	if err != nil {
-		fmt.Println("Failed to send request to server:", err)
+		fmt.Println("Error making request:", err)
 		return
 	}
 	defer resp.Body.Close()
 
-	// Read response body
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Failed to read response body:", err)
-		return
-	}
+	var states LicenseResponse
+	body, _ := ioutil.ReadAll(resp.Body)
+	json.Unmarshal(body, &states)
 
-	// Decode JSON response
-	var result map[string]interface{}
-	if err := json.Unmarshal(body, &result); err != nil {
-		fmt.Println("Failed to decode server response:", err)
-		return
-	}
-
-	status, ok := result["title"].(string)
-	if !ok {
-		fmt.Println("Invalid server response format")
-		return
-	}
-
-	if status == "Successful" {
-		fmt.Printf("Yeah, you just activated %s, gg!\n", serviceConfig.ServiceName)
-		if err := os.WriteFile("key.db", []byte(fmt.Sprintf("%s\nby Kisakay with <3", key)), 0644); err != nil {
-			fmt.Println("Failed to write key file:", err)
+	if states.Success {
+		fmt.Printf("Yeah, you just activate %s, gg !\n", serviceConfig.ServiceName)
+		
+		// Writing to db
+		err := ioutil.WriteFile("key.db", []byte(fmt.Sprintf("%s\nby Kisakay with <3", answer)), 0644)
+		if err != nil {
+			fmt.Println("Error writing key file:", err)
 			return
 		}
+		
 		start()
-	} else if status == "Your key is not available !" {
-		fmt.Println(color.RedString("No, this key is not correct! Please contact support if you don't have a key!"))
-	} else if status == "Bad ip with your key !" {
-		fmt.Println(color.RedString("Your key is not associated with this IP! Please disable your VPN or switch to a classical connection!"))
-		fmt.Println("For more information, please contact support! If you don't know, 1 key is for 1 person!")
+		return
+	}
+	
+	if states.Error == "Key doesn't exist" {
+		fmt.Println("No, this key is not correct ! Please contact support, if you don't have key !")
+		os.Exit(1)
+	} else if states.Error == "Bad ip with your key !" {
+		fmt.Println("Your key is not associed to this ip ! Please disable your vpn or switch to classical connections !\nFor more informations please contact the support !\nIf you don't know, 1* Key is for 1* People !")
+		os.Exit(1)
 	}
 }
 
 func start() {
-	// Your Software Here
+	// Your Software Here:
 }
 
-func main() {
-	licenceChecker()
-}
+// made by Kisakay

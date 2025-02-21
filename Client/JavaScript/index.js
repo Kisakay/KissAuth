@@ -28,8 +28,7 @@ async function licenceChecker() {
                 fetch(`http://${serviceConfig.url}:${serviceConfig.port}/license/login`, {
                     method: 'POST',
                     body: JSON.stringify({
-                        adminKey: "unknow",
-                        key: lines[0],
+                        key: lines[0]
                     }),
                     headers: { 'Content-type': 'application/json; charset=UTF-8' },
                 })
@@ -66,7 +65,6 @@ async function get() {
         fetch(`http://${serviceConfig.url}:${serviceConfig.port}/license/login`, {
             method: 'POST',
             body: JSON.stringify({
-                adminKey: "unknow",
                 key: answer,
             }),
             headers: { 'Content-type': 'application/json; charset=UTF-8' },

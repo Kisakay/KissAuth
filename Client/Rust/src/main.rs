@@ -1,112 +1,145 @@
-use std::error::Error;
+use reqwest::blocking::Client;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::{self, Write};
-use colored::*;
-use serde_json::json;
+use std::process;
 
-const SERVICE_CONFIG: &str = r#"{
-    "port": 3030,
-    "url": "127.0.0.1",
-    "service_name": "Example software name"
-}"#;
+#[derive(Serialize, Deserialize, Debug)]
+struct ServiceConfig {
+    port: u16,
+    url: String,
+    service_name: String,
+}
 
-const IPIFY_ENDPOINT_IPV4: &str = "https://api.ipify.org";
-const IPIFY_ENDPOINT_IPV6: &str = "https://api6.ipify.org";
+#[derive(Serialize, Deserialize, Debug)]
+struct LicenseRequest {
+    key: String,
+}
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-    let service_config: serde_json::Value = serde_json::from_str(SERVICE_CONFIG)?;
+#[derive(Serialize, Deserialize, Debug)]
+struct LicenseResponse {
+    success: Option<bool>,
+    error: Option<String>,
+}
 
-    println!("{}", "Checking if you are already activate the software...".yellow());
-    let my_ip = ipify(false).await?;
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let service_config = ServiceConfig {
+        port: 3030,
+        url: String::from("127.0.0.1"),
+        service_name: String::from("Example software name"),
+    };
 
-    if !fs::metadata("key.db").is_ok() {
-        get().await?;
-    } else {
-        let data = fs::read_to_string("key.db")?;
-        if !data.is_empty() {
-            let lines: Vec<&str> = data.split("\n").collect();
-            let response = check_license(&service_config, &my_ip, &lines[0]).await?;
-            let status_srv = response["title"].as_str().unwrap_or("");
-
-            if status_srv == "Succeful" {
-                println!("{}", format!("Yeah, {} is activate !", service_config["service_name"].as_str().unwrap()).green().bold());
-                println!("{}", "-----> Starting The Software...".green().bold());
-                // starting...
-                start();
-            } else {
-                if status_srv == "Bad ip with your key !" {
-                    start();
-                } else {
-                    get().await?;
-                }
-            }
-        }
-    }
+    licence_checker(&service_config)?;
     Ok(())
 }
 
-async fn ipify(use_ipv6: bool) -> Result<String, Box<dyn Error>> {
-    let endpoint = if use_ipv6 {
-        IPIFY_ENDPOINT_IPV6
+fn licence_checker(config: &ServiceConfig) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Checking if you are already activate the software...");
+
+    if !std::path::Path::new("key.db").exists() {
+        get(config)?;
     } else {
-        IPIFY_ENDPOINT_IPV4
-    };
+        match fs::read_to_string("key.db") {
+            Ok(data) if !data.is_empty() => {
+                let lines: Vec<&str> = data.split('\n').collect();
+                let client = Client::new();
 
-    let response = reqwest::get(endpoint).await?;
-    let ip = response.text().await?;
-    Ok(ip)
+                let license_req = LicenseRequest {
+                    key: lines[0].to_string(),
+                };
+
+                let url = format!(
+                    "http://{}:{}/license/login",
+                    config.url, config.port
+                );
+                
+                match client.post(&url)
+                    .json(&license_req)
+                    .header("Content-type", "application/json; charset=UTF-8")
+                    .send() {
+                    Ok(response) => {
+                        match response.json::<LicenseResponse>() {
+                            Ok(states) => {
+                                if let Some(true) = states.success {
+                                    println!("Yeah, {} is activate !", config.service_name);
+                                    println!("-----> Starting The Software...");
+                                    start();
+                                } else {
+                                    if states.error.as_deref() == Some("Bad ip with your key !") {
+                                        start();
+                                    } else {
+                                        get(config)?;
+                                    }
+                                }
+                            },
+                            Err(e) => println!("Error parsing response: {}", e),
+                        }
+                    },
+                    Err(e) => println!("Error making request: {}", e),
+                }
+            },
+            _ => get(config)?,
+        }
+    }
+    
+    Ok(())
 }
 
-async fn check_license(service_config: &serde_json::Value, my_ip: &str, key: &str) -> Result<serde_json::Value, Box<dyn Error>> {
-    let client = reqwest::Client::new();
-    let url = format!(
-        "http://{}:{}/api/json",
-        service_config["url"].as_str().unwrap(),
-        service_config["port"].as_u64().unwrap()
+fn get(config: &ServiceConfig) -> Result<(), Box<dyn std::error::Error>> {
+    println!(
+        "Hey, {} is not free ! Do you have key? If you here, i think is yes ! Type you key please :",
+        config.service_name
     );
-    let body = json!({
-        "adminKey": "unknow",
-        "ip": my_ip,
-        "key": key,
-        "tor": "LOGIN_KEY"
-    });
-
-    let response = client.post(&url).json(&body).send().await?;
-    let response_body = response.text().await?;
-    let response_json: serde_json::Value = serde_json::from_str(&response_body)?;
-    Ok(response_json)
-}
-
-async fn get() -> Result<(), Box<dyn Error>> {
-    let service_config: serde_json::Value = serde_json::from_str(SERVICE_CONFIG)?;
-    let my_ip = ipify(false).await?;
-    print!("{}", format!("Hey, {} is not free ! Do you have key? If you here, i think is yes ! Type you key please :", "Example software name").red());
-    print!("{}", "key ~> ".blue());
+    
+    print!("key ~> ");
     io::stdout().flush()?;
+    
     let mut answer = String::new();
     io::stdin().read_line(&mut answer)?;
+    let answer = answer.trim();
+    
+    println!("[API] >> Checking if your key is available");
 
-    println!("{}", "[API] >> Checking if your key is available".green());
-    let response = check_license(&service_config, &my_ip, &answer).await?;
-    let status_srv = response["title"].as_str().unwrap_or("");
+    let client = Client::new();
+    let license_req = LicenseRequest {
+        key: answer.to_string(),
+    };
 
-    if status_srv == "Succeful" {
-        println!("{}", format!("Yeah, you just activate {}, gg !", service_config["service_name"].as_str().unwrap()).green().bold());
-        // writing in db
+    let url = format!(
+        "http://{}:{}/license/login",
+        config.url, config.port
+    );
+    
+    let response = client.post(&url)
+        .json(&license_req)
+        .header("Content-type", "application/json; charset=UTF-8")
+        .send()?;
+    
+    let states: LicenseResponse = response.json()?;
+
+    if let Some(true) = states.success {
+        println!("Yeah, you just activate {}, gg !", config.service_name);
+        
+        // Writing to db
         fs::write("key.db", format!("{}\nby Kisakay with <3", answer))?;
-        // the software:
+        
         start();
-    } else if status_srv == "Your key is not unvailable !" {
-        println!("{}", "No, this key is not correct ! Please contact support, if you don't have key !".red().bold());
-    } else if status_srv == "Bad ip with your key !" {
-        println!("{}", "Your key is not associed to this ip ! Please disable your vpn or switch to classical connections !\nFor more informations please contact the support !\nIf you don't know, 1* Key is for 1* People !".red().bold());
+        return Ok(());
     }
-
+    
+    if states.error.as_deref() == Some("Key doesn't exist") {
+        println!("No, this key is not correct ! Please contact support, if you don't have key !");
+        process::exit(1);
+    } else if states.error.as_deref() == Some("Bad ip with your key !") {
+        println!("Your key is not associed to this ip ! Please disable your vpn or switch to classical connections !\nFor more informations please contact the support !\nIf you don't know, 1* Key is for 1* People !");
+        process::exit(1);
+    }
+    
     Ok(())
 }
 
 fn start() {
-    // Your Software Here
+    // Your Software Here:
 }
 
+// made by Kisakay
