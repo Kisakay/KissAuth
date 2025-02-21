@@ -11,8 +11,8 @@
 */
 
 import rateLimit from "express-rate-limit";
-import cors from "cors";
 import express from 'express';
+import cors from "cors";
 
 import { config } from '../config.js';
 import { printer } from "../index.js";
@@ -47,10 +47,6 @@ class Server {
         this.app.use(limiter);
         this.app.use(cors());
         this.app.use(express.json({ limit: "500mb" }));
-
-        // this.app.post('/api/json', (req, res) => {
-        //     // server(req, res, db);
-        // });
     }
 
     private async routes_handler() {
