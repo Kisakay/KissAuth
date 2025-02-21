@@ -131,3 +131,4 @@ Client/JavaScript/key.db
 Client/Rust/key.db
 bun.lockb
 Server/quickdb.json
+*.lock
