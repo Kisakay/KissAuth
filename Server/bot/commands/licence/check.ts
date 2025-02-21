@@ -41,14 +41,10 @@ export const command: BotCommand = {
             return;
         };
 
-        let sltcv = new EmbedBuilder()
-            .setTitle("Pending check...")
-            .setDescription(`<@${interaction.user.id}> want to check key: \n\`\`\`${key}\`\`\``)
-            .setColor("#000000")
-            .setFooter({ text: 'by Kisakay', iconURL: client.user?.displayAvatarURL()! });
-
-        await interaction.reply({ embeds: [sltcv], ephemeral: true });
-        await interaction.followUp({ content: `**->**See Logs Here <#${config.channel_log_id}>`, ephemeral: true })
+        await interaction.reply({
+            content: "Please wait a moment...",
+            ephemeral: true
+        });
 
         let embed = new EmbedBuilder()
             .setTitle("Request to server...")

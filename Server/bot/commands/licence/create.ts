@@ -51,13 +51,10 @@ export const command: BotCommand = {
 
         var key = generatePassword({ length: 122, symbols: false });
 
-        let sltcv = new EmbedBuilder()
-            .setTitle("Key in creation")
-            .setDescription(`<@${interaction.user.id}> create: \n\`\`\`${key}\`\`\``)
-            .setColor("#000000")
-            .setFooter({ text: 'by Kisakay', iconURL: client.user?.displayAvatarURL()! });
-
-        await interaction.reply({ embeds: [sltcv], ephemeral: true });
+        await interaction.reply({
+            content: "Key in creation...",
+            ephemeral: true
+        });
         await interaction.followUp({ content: `**->** <#${config.channel_log_id}>`, ephemeral: true });
 
         let embed = new EmbedBuilder()
